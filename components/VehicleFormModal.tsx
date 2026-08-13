@@ -61,7 +61,7 @@ export default function VehicleFormModal({
   onMoveToTrade?: () => void;
 }) {
   const [stock, setStock] = useState<StockStatus>(vehicle?.stock ?? "STOCK");
-  const [make, setMake] = useState(vehicle?.make ?? "BMW");
+  const [make, setMake] = useState(vehicle?.make ?? "Mercedes-Benz");
   const [model, setModel] = useState(vehicle?.model ?? "");
   const [reg, setReg] = useState(vehicle?.reg ?? "");
   const [chassis, setChassis] = useState(vehicle?.chassis ?? "");
@@ -112,8 +112,8 @@ export default function VehicleFormModal({
           <div>
             <label className="field-label" htmlFor="f-make">Make *</label>
             <select id="f-make" className="field-input" value={make} onChange={(e) => setMake(e.target.value)}>
-              <option>BMW</option>
-              <option>MINI</option>
+              <option>Mercedes-Benz</option>
+              <option>smart</option>
             </select>
           </div>
           <div>
