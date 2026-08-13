@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { TabKey, WheelPos, WheelType } from "@/lib/types";
 import { STAGES, TABS, daysInStage } from "@/lib/stages";
 import { useVehicles } from "@/lib/store";
@@ -13,6 +13,13 @@ import EmailModal from "@/components/EmailModal";
 import CommentsModal from "@/components/CommentsModal";
 import VehicleFormModal, { type VehicleFormValues } from "@/components/VehicleFormModal";
 import { IconRefresh } from "@/components/icons";
+import {
+  disableNotifications,
+  enableNotifications,
+  notificationsEnabled,
+  notificationsSupported,
+  notify,
+} from "@/lib/notify";
 
 type ModalState =
   | { kind: "action" | "wheels" | "timeline" | "emails" | "edit" | "comments"; id: string }
@@ -25,6 +32,11 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [notifOn, setNotifOn] = useState(false);
+
+  useEffect(() => {
+    setNotifOn(notificationsEnabled());
+  }, []);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -59,12 +71,43 @@ export default function Home() {
     [vehicles],
   );
 
+  // notify once per vehicle when it crosses its stage SLA
+  useEffect(() => {
+    if (!notifOn || vehicles.length === 0) return;
+    const overdueNow = vehicles.filter(
+      (v) => v.stage !== "READY" && daysInStage(v.stageEnteredAt) > STAGES[v.stage].sla,
+    );
+    let seen: string[] = [];
+    try {
+      seen = JSON.parse(localStorage.getItem("prepflow-notified-overdue") ?? "[]");
+    } catch {
+      /* ignore */
+    }
+    const fresh = overdueNow.filter((v) => !seen.includes(`${v.id}:${v.stage}`));
+    for (const v of fresh) {
+      const days = daysInStage(v.stageEnteredAt);
+      void notify(
+        `⚠ ${v.reg} is overdue`,
+        `${v.model} — ${days} days in "${STAGES[v.stage].label}" (target ${STAGES[v.stage].sla})`,
+      );
+    }
+    if (fresh.length) {
+      const next = [...seen, ...fresh.map((v) => `${v.id}:${v.stage}`)].slice(-100);
+      try {
+        localStorage.setItem("prepflow-notified-overdue", JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [notifOn, vehicles]);
+
   const current = modal && "id" in modal ? vehicles.find((v) => v.id === modal.id) : undefined;
 
   const submitWheels = (type: WheelType, positions: WheelPos[], po: string, notes: string) => {
     if (!current) return;
     store.sendToTLC(current.id, type, positions, po, notes);
     showToast("PO submitted — e-mail to wheel vendor generated");
+    void notify(`${current.reg} sent to TLC`, `PO ${po} · ${positions.join(", ")} · e-mail to the wheel vendor generated.`);
     setModal({ kind: "emails", id: current.id });
     setTab("TLC");
   };
@@ -116,6 +159,30 @@ export default function Home() {
           >
             <IconRefresh />
           </button>
+          {notificationsSupported() && (
+            <button
+              className={`icon-btn h-10 w-10 border ${notifOn ? "border-blue-300 bg-blue-50 text-blue-700" : "border-slate-200 bg-white"}`}
+              title={notifOn ? "Notifications on — click to mute" : "Enable notifications (overdue alerts)"}
+              onClick={async () => {
+                if (notifOn) {
+                  disableNotifications();
+                  setNotifOn(false);
+                  showToast("Notifications muted");
+                } else {
+                  const ok = await enableNotifications();
+                  setNotifOn(ok);
+                  if (ok) {
+                    showToast("Notifications on — you'll hear about overdue cars");
+                    void notify("PrepFlow notifications enabled", "You'll be alerted when a car goes over its stage target.");
+                  } else {
+                    showToast("Notifications blocked by the browser");
+                  }
+                }
+              }}
+            >
+              {notifOn ? "🔔" : "🔕"}
+            </button>
+          )}
           <button className="btn-ghost" onClick={() => showToast("Movement requests are not part of this demo")}>
             Movement request
           </button>
@@ -176,8 +243,17 @@ export default function Home() {
               key={v.id}
               v={v}
               onAdvance={() => {
+                const next = STAGES[v.stage].nextStage;
                 store.advance(v.id);
                 showToast("Status updated");
+                if (next === "WORKSHOP_COMPLETE" || v.stage === "AT_TLC" || v.stage === "AT_BODYSHOP") {
+                  void notify(
+                    `${v.reg} — workshop complete`,
+                    v.stage === "AT_TLC" || v.stage === "AT_BODYSHOP"
+                      ? `${v.model} is back from the vendor — choose its next step.`
+                      : `${v.model} finished the workshop — choose its next step.`,
+                  );
+                }
               }}
               onOpenAction={() => setModal({ kind: "action", id: v.id })}
               onEdit={() => setModal({ kind: "edit", id: v.id })}
@@ -237,6 +313,7 @@ export default function Home() {
           onSendToBodyshop={() => {
             store.sendToBodyshop(current.id);
             showToast("E-mail to bodyshop estimators generated");
+            void notify(`${current.reg} sent to bodyshop`, "E-mail to the EWARC estimators generated.");
             setModal({ kind: "emails", id: current.id });
             setTab("BODYSHOP");
           }}
