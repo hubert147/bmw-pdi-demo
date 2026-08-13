@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --brand: #1c4e80;
-  --brand-dark: #0f2f52;
+  --bg: #0a0e14;
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-strong: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --ink: #e8edf4;
+  --ink-2: #9aa8b8;
+  --ink-3: #64748b;
+  --accent: #22d3ee;
+  --accent-2: #0ea5e9;
 }
 
 html,
@@ -12,44 +20,122 @@ body {
 
 body {
   background:
-    radial-gradient(1200px 500px at 80% -10%, rgba(28, 78, 128, 0.18), transparent 60%),
-    radial-gradient(900px 400px at 10% 110%, rgba(13, 148, 136, 0.12), transparent 60%),
-    #f1f5f9;
-  color: #0f172a;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    radial-gradient(1100px 520px at 85% -12%, rgba(34, 211, 238, 0.13), transparent 62%),
+    radial-gradient(900px 460px at -8% 108%, rgba(14, 165, 233, 0.10), transparent 60%),
+    radial-gradient(700px 300px at 50% 118%, rgba(148, 163, 184, 0.06), transparent 70%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
+::selection {
+  background: rgba(34, 211, 238, 0.35);
+}
+
+/* ---------- surfaces ---------- */
+
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.text-silver {
+  background: linear-gradient(120deg, #f8fafc 0%, #cbd5e1 45%, #f1f5f9 60%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- controls ---------- */
+
 .chip {
-  @apply inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap shadow-sm;
+  @apply inline-flex items-center justify-center gap-1 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap shadow-sm;
 }
 
 .btn {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed;
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed bg-blue-700 text-white hover:bg-blue-800 shadow;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed text-slate-950;
+  background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 45%, #0ea5e9 100%);
+  box-shadow: 0 4px 18px rgba(34, 211, 238, 0.28);
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(34, 211, 238, 0.38);
 }
 
 .btn-danger {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed bg-red-600 text-white hover:bg-red-700 shadow;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed text-white;
+  background: linear-gradient(135deg, #f87171, #dc2626);
+  box-shadow: 0 4px 18px rgba(220, 38, 38, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
 }
 
 .btn-ghost {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed bg-white/70 text-slate-700 border border-slate-200 hover:bg-white;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--surface-strong);
+  border-color: var(--border-strong);
 }
 
 .icon-btn {
-  @apply inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors cursor-pointer;
+  @apply relative inline-flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 cursor-pointer;
+  color: var(--ink-2);
 }
 
+.icon-btn:hover {
+  color: var(--ink);
+  background: var(--surface-strong);
+}
+
+/* ---------- forms ---------- */
+
 .field-label {
-  @apply block text-xs font-semibold uppercase tracking-wide text-slate-600 mb-1;
+  @apply block text-[11px] font-semibold uppercase tracking-wider mb-1.5;
+  color: var(--ink-2);
 }
 
 .field-input {
-  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500;
+  @apply w-full rounded-xl px-3.5 py-2.5 text-sm transition-all duration-200;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
 }
+
+.field-input::placeholder {
+  color: var(--ink-3);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: rgba(34, 211, 238, 0.6);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+select.field-input option {
+  background: #101826;
+  color: var(--ink);
+}
+
+/* ---------- tables ---------- */
 
 .kv-table {
   @apply w-full border-collapse text-sm;
@@ -57,17 +143,26 @@ body {
 
 .kv-table th,
 .kv-table td {
-  @apply border border-slate-300 px-3 py-2 text-left align-top;
+  @apply px-3 py-2.5 text-left align-top;
+  border: 1px solid var(--border);
 }
 
 .kv-table th {
-  @apply bg-slate-100 font-semibold;
+  @apply text-[11px] font-semibold uppercase tracking-wider;
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.04);
 }
+
+.kv-table td {
+  color: var(--ink);
+}
+
+/* ---------- motion ---------- */
 
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(14px) scale(0.985);
   }
   to {
     opacity: 1;
@@ -76,5 +171,41 @@ body {
 }
 
 .modal-card {
-  animation: fade-up 0.18s ease-out;
+  animation: fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.row-enter {
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
+  }
+}
+
+.alert-pulse {
+  animation: glow-pulse 1.6s ease-in-out infinite;
+}
+
+/* ---------- a11y ---------- */
+
+:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.8);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

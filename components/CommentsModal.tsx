@@ -18,15 +18,17 @@ export default function CommentsModal({
   return (
     <Modal onClose={onClose}>
       <div className="p-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-800">Comments — {v.reg}</h2>
+        <h2 className="mb-4 text-lg font-bold text-slate-100">
+          Comments — <span className="text-cyan-300">{v.reg}</span>
+        </h2>
         <div className="mb-4 max-h-64 space-y-2 overflow-y-auto">
           {v.comments.length === 0 && (
-            <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-500">No comments yet.</p>
+            <p className="rounded-xl bg-white/5 p-3 text-sm text-slate-400">No comments yet.</p>
           )}
           {[...v.comments].reverse().map((c, i) => (
-            <div key={i} className="rounded-lg bg-slate-100 p-3">
-              <p className="text-sm text-slate-800">{c.text}</p>
-              <p className="mt-1 text-xs text-slate-400">{fmtDateTime(c.at)}</p>
+            <div key={i} className="rounded-xl border border-white/8 bg-white/5 p-3">
+              <p className="text-sm text-slate-200">{c.text}</p>
+              <p className="mt-1 text-xs text-slate-500">{fmtDateTime(c.at)}</p>
             </div>
           ))}
         </div>

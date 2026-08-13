@@ -5,6 +5,7 @@ import type { StockStatus, Vehicle, VehiclePhoto, WheelType } from "@/lib/types"
 import { MAX_PHOTOS, fileToThumb } from "@/lib/photos";
 import Modal from "./Modal";
 import VinScanModal from "./VinScanModal";
+import { IconCamera } from "./icons";
 
 function Toggle({
   checked,
@@ -23,13 +24,13 @@ function Toggle({
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 rounded-full transition-colors ${checked ? "bg-blue-600" : "bg-slate-300"}`}
+        className={`relative h-6 w-11 cursor-pointer rounded-full transition-colors ${checked ? "bg-cyan-400" : "bg-white/15"}`}
       >
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`}
         />
       </button>
-      <span className="text-sm text-slate-600">{checked ? "On" : "Off"}</span>
+      <span className="text-sm text-slate-400">{checked ? "On" : "Off"}</span>
     </label>
   );
 }
@@ -112,9 +113,13 @@ export default function VehicleFormModal({
 
   return (
     <Modal onClose={onClose} wide>
-      <div className="rounded-2xl bg-gradient-to-br from-teal-200 via-emerald-100 to-yellow-100 p-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-800">
-          {mode === "add" ? "Add Vehicle" : `Edit vehicle — ${vehicle?.reg}`}
+      <div className="rounded-2xl p-6">
+        <h2 className="mb-4 text-lg font-bold text-slate-100">
+          {mode === "add" ? "Add Vehicle" : (
+            <>
+              Edit vehicle — <span className="text-cyan-300">{vehicle?.reg}</span>
+            </>
+          )}
         </h2>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -156,7 +161,7 @@ export default function VehicleFormModal({
                 title="Scan the VIN barcode with your camera"
                 onClick={() => setScanOpen(true)}
               >
-                📷 Scan
+                <IconCamera /> Scan
               </button>
             </div>
           </div>
@@ -195,7 +200,7 @@ export default function VehicleFormModal({
                 <img
                   src={p.dataUrl}
                   alt={`Damage photo ${i + 1}`}
-                  className="h-16 w-20 rounded-lg border border-slate-300 object-cover shadow-sm"
+                  className="h-16 w-20 rounded-lg border border-white/15 object-cover shadow-sm"
                 />
                 <button
                   type="button"
@@ -210,10 +215,10 @@ export default function VehicleFormModal({
             {photos.length < MAX_PHOTOS && (
               <button
                 type="button"
-                className="flex h-16 w-20 flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-400 text-slate-500 hover:border-blue-500 hover:text-blue-600"
+                className="flex h-16 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-white/25 text-slate-400 transition-colors hover:border-cyan-300/60 hover:text-cyan-300"
                 onClick={() => fileRef.current?.click()}
               >
-                <span className="text-lg leading-none">📷</span>
+                <IconCamera className="h-5 w-5" />
                 <span className="text-[10px] font-semibold">Add photo</span>
               </button>
             )}
@@ -250,7 +255,7 @@ export default function VehicleFormModal({
           )}
           <div className="flex gap-3">
             <button className="btn-primary px-6" disabled={!valid} onClick={save}>
-              {mode === "add" ? "Add Vehicle" : "💾 Save"}
+              {mode === "add" ? "Add Vehicle" : "Save"}
             </button>
             {mode === "edit" && (
               <button className="btn-danger" onClick={onMoveToTrade}>

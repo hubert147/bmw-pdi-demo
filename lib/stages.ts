@@ -17,7 +17,7 @@ interface StageMeta {
 export const STAGES: Record<StageKey, StageMeta> = {
   TO_GO_TO_PDI: {
     label: "To go to PDI",
-    chip: "bg-slate-400 text-white",
+    chip: "bg-slate-500/90 text-white",
     tab: "PDI",
     nextLabel: "Arrived at PDI",
     nextStage: "ARRIVED_AT_PDI",
@@ -26,7 +26,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
   },
   ARRIVED_AT_PDI: {
     label: "Arrived at PDI",
-    chip: "bg-red-900 text-white",
+    chip: "bg-red-800 text-white",
     tab: "PDI",
     nextLabel: "Job Card Raised",
     nextStage: "JOB_CARD_RAISED",
@@ -119,6 +119,22 @@ export const STAGES: Record<StageKey, StageMeta> = {
     sla: Number.POSITIVE_INFINITY,
   },
 };
+
+/** full pipeline order — drives the per-row progress bar */
+export const ORDERED_STAGES: StageKey[] = [
+  "TO_GO_TO_PDI",
+  "ARRIVED_AT_PDI",
+  "JOB_CARD_RAISED",
+  "WORKSHOP_STARTED",
+  "AUTHORITY_REQUESTED",
+  "AUTHORITY_RECEIVED",
+  "WORKSHOP_COMPLETE",
+  "AT_TLC",
+  "AT_BODYSHOP",
+  "ON_VALET_SHEET",
+  "VALETED",
+  "READY",
+];
 
 export const TABS: { key: TabKey; label: string }[] = [
   { key: "PDI", label: "PDI" },

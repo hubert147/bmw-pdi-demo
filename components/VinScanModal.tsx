@@ -66,13 +66,13 @@ export default function VinScanModal({
   return (
     <Modal onClose={onClose}>
       <div className="p-6">
-        <h2 className="mb-1 text-lg font-bold text-slate-800">Scan VIN</h2>
-        <p className="mb-4 text-sm text-slate-500">
+        <h2 className="mb-1 text-lg font-bold text-slate-100">Scan VIN</h2>
+        <p className="mb-4 text-sm text-slate-400">
           Point the camera at the VIN barcode (door jamb / windscreen) or any QR code. The last 7
           characters fill the chassis field automatically.
         </p>
 
-        <div className="relative overflow-hidden rounded-xl bg-slate-900">
+        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black">
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video ref={videoRef} className="h-64 w-full object-cover" muted playsInline />
           {status !== "error" && (

@@ -12,7 +12,7 @@ import TimelineModal from "@/components/TimelineModal";
 import EmailModal from "@/components/EmailModal";
 import CommentsModal from "@/components/CommentsModal";
 import VehicleFormModal, { type VehicleFormValues } from "@/components/VehicleFormModal";
-import { IconRefresh } from "@/components/icons";
+import { IconBell, IconChart, IconPlus, IconRefresh, IconSync } from "@/components/icons";
 import {
   disableNotifications,
   enableNotifications,
@@ -33,8 +33,11 @@ export default function Home() {
   const [modal, setModal] = useState<ModalState>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [notifOn, setNotifOn] = useState(false);
+  // avoids SSR/client hydration mismatch for browser-API-dependent UI (bell button)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setNotifOn(notificationsEnabled());
   }, []);
 
@@ -131,18 +134,20 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 pt-6">
       {/* header */}
-      <header className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-3">
+      <header className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.svg" alt="PrepFlow" className="h-11 w-11 rounded-xl shadow" />
+          <img src="/icon.svg" alt="PrepFlow" className="h-12 w-12 rounded-2xl shadow-lg shadow-cyan-500/20" />
           <div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900">
-              PrepFlow{" "}
-              <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-900 align-middle">
+            <h1 className="text-2xl font-extrabold tracking-tight">
+              <span className="text-silver">PrepFlow</span>{" "}
+              <span className="ml-1 rounded-md border border-amber-300/30 bg-amber-300/15 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wider text-amber-200">
                 Demo
               </span>
             </h1>
-            <p className="text-xs text-slate-500">Vehicle preparation control — PDI → wheels → bodyshop → valet → photos</p>
+            <p className="text-xs text-slate-400">
+              Vehicle preparation control — PDI → wheels → bodyshop → valet → photos
+            </p>
           </div>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -153,15 +158,15 @@ export default function Home() {
             onChange={(e) => setQuery(e.target.value)}
           />
           <button
-            className="icon-btn h-10 w-10 border border-slate-200 bg-white"
+            className="icon-btn h-10 w-10 border border-white/10 bg-white/5"
             title="Refresh"
             onClick={() => showToast("Refreshed")}
           >
             <IconRefresh />
           </button>
-          {notificationsSupported() && (
+          {mounted && notificationsSupported() && (
             <button
-              className={`icon-btn h-10 w-10 border ${notifOn ? "border-blue-300 bg-blue-50 text-blue-700" : "border-slate-200 bg-white"}`}
+              className={`icon-btn h-10 w-10 border ${notifOn ? "border-cyan-300/50 bg-cyan-400/15 !text-cyan-300" : "border-white/10 bg-white/5"}`}
               title={notifOn ? "Notifications on — click to mute" : "Enable notifications (overdue alerts)"}
               onClick={async () => {
                 if (notifOn) {
@@ -180,7 +185,7 @@ export default function Home() {
                 }
               }}
             >
-              {notifOn ? "🔔" : "🔕"}
+              <IconBell off={!notifOn} />
             </button>
           )}
           <button className="btn-ghost" onClick={() => showToast("Movement requests are not part of this demo")}>
@@ -222,28 +227,30 @@ export default function Home() {
               }
             }}
           >
-            ⇄ DMS import
+            <IconSync /> DMS import
           </button>
           <button className="btn-primary" onClick={() => setModal({ kind: "add" })}>
-            + Add Vehicle
+            <IconPlus /> Add Vehicle
           </button>
         </div>
       </header>
 
       {/* tabs */}
-      <nav className="mb-4 flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white/80 p-1.5 shadow-sm backdrop-blur">
+      <nav className="glass mb-5 flex flex-wrap gap-1 p-1.5">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-              tab === t.key ? "bg-blue-700 text-white shadow" : "text-slate-600 hover:bg-slate-100"
+            className={`relative flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all duration-200 ${
+              tab === t.key
+                ? "bg-gradient-to-br from-cyan-300 to-sky-400 text-slate-950 shadow-lg shadow-cyan-500/25"
+                : "text-slate-400 hover:bg-white/5 hover:text-slate-100"
             }`}
           >
             {t.label}
             <span
               className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold ${
-                tab === t.key ? "bg-white text-blue-700" : "bg-blue-600 text-white"
+                tab === t.key ? "bg-slate-950/85 text-cyan-300" : "bg-white/10 text-slate-300"
               }`}
             >
               {counts[t.key]}
@@ -252,13 +259,15 @@ export default function Home() {
         ))}
         <button
           onClick={() => setTab("INSIGHTS")}
-          className={`relative ml-auto flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-            tab === "INSIGHTS" ? "bg-slate-800 text-white shadow" : "text-slate-600 hover:bg-slate-100"
+          className={`relative ml-auto flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all duration-200 ${
+            tab === "INSIGHTS"
+              ? "bg-gradient-to-br from-slate-100 to-slate-300 text-slate-950 shadow-lg shadow-white/10"
+              : "text-slate-400 hover:bg-white/5 hover:text-slate-100"
           }`}
         >
-          📊 Insights
+          <IconChart /> Insights
           {overdueCount > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white">
+            <span className="alert-pulse flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
               {overdueCount}
             </span>
           )}
@@ -271,15 +280,16 @@ export default function Home() {
       ) : tab === "INSIGHTS" ? (
         <InsightsView vehicles={vehicles} />
       ) : filtered.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-white/60 py-16 text-center text-sm text-slate-500">
+        <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.03] py-16 text-center text-sm text-slate-500">
           No vehicles in this tab{query ? " matching your search" : ""}.
         </p>
       ) : (
-        <div className="space-y-2">
-          {filtered.map((v) => (
+        <div className="space-y-2.5">
+          {filtered.map((v, i) => (
             <VehicleRow
               key={v.id}
               v={v}
+              index={i}
               onAdvance={() => {
                 const next = STAGES[v.stage].nextStage;
                 store.advance(v.id);
@@ -304,12 +314,12 @@ export default function Home() {
       )}
 
       {/* footer */}
-      <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-xs text-slate-400">
+      <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-slate-500">
         <span>
           Demo build — all data lives in your browser (localStorage). Installable as an app (PWA).
         </span>
         <button
-          className="underline hover:text-slate-600"
+          className="cursor-pointer underline transition-colors hover:text-slate-300"
           onClick={() => {
             store.resetDemo();
             showToast("Demo data reset");
@@ -386,7 +396,7 @@ export default function Home() {
 
       {/* toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xl">
+        <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 rounded-full border border-cyan-300/40 bg-slate-900/95 px-5 py-2.5 text-sm font-semibold text-white shadow-xl shadow-cyan-500/10 backdrop-blur">
           {toast}
         </div>
       )}

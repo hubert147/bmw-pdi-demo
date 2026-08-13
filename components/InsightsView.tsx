@@ -4,6 +4,7 @@ import type { Vehicle } from "@/lib/types";
 import { STAGES } from "@/lib/stages";
 import { computeInsights } from "@/lib/insights";
 import { downloadControlSheet } from "@/lib/csv";
+import { IconDownload } from "./icons";
 
 function Tile({
   label,
@@ -17,11 +18,11 @@ function Tile({
   tone?: "default" | "bad" | "good";
 }) {
   const valueColor =
-    tone === "bad" ? "text-red-600" : tone === "good" ? "text-emerald-600" : "text-slate-900";
+    tone === "bad" ? "text-red-400" : tone === "good" ? "text-emerald-400" : "text-white";
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`mt-1 text-2xl font-black tabular-nums ${valueColor}`}>{value}</p>
+    <div className="glass px-4 py-3.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className={`mt-1 text-3xl font-extrabold tabular-nums tracking-tight ${valueColor}`}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
     </div>
   );
@@ -33,16 +34,16 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-slate-400">
           Live metrics from the current fleet — updated with every click.
         </p>
         <button
-          className="btn-primary"
+          className="btn-ghost"
           title="Download the full control sheet as CSV (opens in Excel)"
           onClick={() => downloadControlSheet(vehicles)}
         >
-          ⬇ Export control sheet (CSV)
+          <IconDownload /> Export control sheet (CSV)
         </button>
       </div>
 
@@ -69,30 +70,34 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
       </div>
 
       {/* days-in-stage bar chart */}
-      <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800">Average days in stage</h3>
-        <p className="mb-3 text-xs text-slate-500">
+      <div className="glass p-5">
+        <h3 className="text-sm font-bold text-slate-100">Average days in stage</h3>
+        <p className="mb-4 text-xs text-slate-400">
           Where cars spend their time — the longest bar is your bottleneck. Red bars exceed the
           stage target.
         </p>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {ins.stageStats.map((s) => (
             <div
               key={s.key}
               className="grid grid-cols-[10rem_1fr] items-center gap-2"
               title={`${s.label}: avg ${s.avgDays.toFixed(1)} days across ${s.samples} car${s.samples === 1 ? "" : "s"} · target ${s.sla} d`}
             >
-              <span className="truncate text-right text-xs text-slate-600">{s.label}</span>
-              <div className="flex items-center gap-2">
-                <div className="h-3.5 flex-1 rounded-r bg-slate-100">
+              <span className="truncate text-right text-xs text-slate-400">{s.label}</span>
+              <div className="flex items-center gap-2.5">
+                <div className="h-3 flex-1 rounded-r-full bg-white/8">
                   <div
-                    className={`h-3.5 rounded-r ${s.overTarget ? "bg-red-600" : "bg-blue-600"}`}
+                    className={`h-3 rounded-r-full ${
+                      s.overTarget
+                        ? "bg-gradient-to-r from-red-500 to-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
+                        : "bg-gradient-to-r from-sky-500 to-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.25)]"
+                    }`}
                     style={{ width: `${Math.max(2, (s.avgDays / maxAvg) * 100)}%` }}
                   />
                 </div>
-                <span className="w-20 shrink-0 text-xs tabular-nums text-slate-700">
+                <span className="w-24 shrink-0 text-xs tabular-nums text-slate-300">
                   {s.avgDays.toFixed(1)} d
-                  {s.overTarget && <span className="ml-1 font-bold text-red-600">⚠ &gt;{s.sla}d</span>}
+                  {s.overTarget && <span className="ml-1 font-bold text-red-400">⚠ &gt;{s.sla}d</span>}
                 </span>
               </div>
             </div>
@@ -101,9 +106,9 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
       </div>
 
       {/* vendor scorecard */}
-      <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800">Vendor scorecard</h3>
-        <p className="mb-3 text-xs text-slate-500">
+      <div className="glass p-5">
+        <h3 className="text-sm font-bold text-slate-100">Vendor scorecard</h3>
+        <p className="mb-3 text-xs text-slate-400">
           Who actually delivers on time — hard numbers for the next price negotiation.
         </p>
         <div className="overflow-x-auto">
@@ -132,10 +137,10 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
                       <span
                         className={`chip ${
                           s.onTimePct >= 80
-                            ? "bg-emerald-600 text-white"
+                            ? "bg-emerald-500/90 text-emerald-950"
                             : s.onTimePct >= 50
-                              ? "bg-amber-500 text-white"
-                              : "bg-red-600 text-white"
+                              ? "bg-amber-400/90 text-amber-950"
+                              : "bg-red-500 text-white"
                         }`}
                       >
                         {s.onTimePct >= 80 ? "✓" : "⚠"} {s.onTimePct}%
@@ -151,21 +156,21 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
       </div>
 
       {/* overdue list */}
-      <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800">
+      <div className="glass p-5">
+        <h3 className="text-sm font-bold text-slate-100">
           Overdue vehicles{" "}
           {ins.overdue.length > 0 && (
-            <span className="ml-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+            <span className="ml-1 rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
               {ins.overdue.length}
             </span>
           )}
         </h3>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-slate-400">
           Sitting in a stage longer than its target — chase these first.
         </p>
         {ins.overdue.length === 0 ? (
-          <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
-            Nothing overdue — every car is inside its stage target. 🎉
+          <p className="rounded-xl bg-emerald-400/10 p-3 text-sm text-emerald-300">
+            Nothing overdue — every car is inside its stage target.
           </p>
         ) : (
           <table className="kv-table">
@@ -187,7 +192,7 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
                   <td>{STAGES[r.vehicle.stage].label}</td>
                   <td className="tabular-nums">{r.days} d</td>
                   <td className="tabular-nums">{r.sla} d</td>
-                  <td className="font-bold text-red-600">+{r.days - r.sla} d</td>
+                  <td className="font-bold !text-red-400">+{r.days - r.sla} d</td>
                 </tr>
               ))}
             </tbody>
@@ -195,7 +200,7 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
         )}
       </div>
 
-      <p className="text-center text-xs text-slate-400">
+      <p className="text-center text-xs text-slate-500">
         Metrics recomputed live from the demo data — the same numbers (time-to-line, days-in-stage,
         bottlenecks) that dedicated recon platforms lead with.
       </p>

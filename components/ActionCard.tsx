@@ -22,12 +22,12 @@ export default function ActionCard({
   const [lightbox, setLightbox] = useState<string | null>(null);
   return (
     <Modal onClose={onClose} wide>
-      <div className="rounded-2xl bg-gradient-to-br from-amber-200 via-emerald-100 to-teal-300 p-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-800">
-          Workshop complete — what happens next with {v.reg}?
+      <div className="rounded-2xl p-6">
+        <h2 className="mb-4 text-lg font-bold text-slate-100">
+          Workshop complete — what happens next with <span className="text-cyan-300">{v.reg}</span>?
         </h2>
         <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
-          <table className="kv-table bg-white/70">
+          <table className="kv-table">
             <thead>
               <tr>
                 <th className="w-1/2">Field</th>
@@ -46,8 +46,8 @@ export default function ActionCard({
               <tr><td>Bodywork Note</td><td>{v.bodyworkNotes || "—"}</td></tr>
             </tbody>
           </table>
-          <div className="rounded-lg border border-slate-300 bg-white/70 p-3">
-            <p className="text-sm font-semibold">Attachments</p>
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+            <p className="text-sm font-semibold text-slate-200">Attachments</p>
             {v.photos.length === 0 ? (
               <p className="mt-4 text-center text-sm text-slate-500">No attachments</p>
             ) : (
@@ -58,7 +58,7 @@ export default function ActionCard({
                     key={i}
                     src={p.dataUrl}
                     alt={`Damage photo ${i + 1}`}
-                    className="h-16 w-full cursor-zoom-in rounded-md border border-slate-300 object-cover shadow-sm hover:brightness-105"
+                    className="h-16 w-full cursor-zoom-in rounded-lg border border-white/15 object-cover shadow-sm transition-all hover:border-cyan-300/50 hover:brightness-110"
                     onClick={() => setLightbox(p.dataUrl)}
                   />
                 ))}
@@ -81,7 +81,7 @@ export default function ActionCard({
             {v.aucCompleted ? "AUC Completed ✓" : "AUC Completed"}
           </button>
         </div>
-        <p className="mt-3 text-center text-xs text-slate-600">
+        <p className="mt-3 text-center text-xs text-slate-500">
           Sending to TLC or Bodyshop generates the vendor e-mail automatically — the car returns to
           this screen when the vendor finishes, then goes on the valet sheet.
         </p>

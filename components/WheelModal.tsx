@@ -31,10 +31,10 @@ export default function WheelModal({
   return (
     <Modal onClose={onClose} wide>
       <div className="p-6">
-        <h2 className="mb-1 text-lg font-bold text-slate-800">
-          Wheel refurbishment — {v.reg}
+        <h2 className="mb-1 text-lg font-bold text-slate-100">
+          Wheel refurbishment — <span className="text-cyan-300">{v.reg}</span>
         </h2>
-        <p className="mb-4 text-sm text-slate-500">
+        <p className="mb-4 text-sm text-slate-400">
           Pick the wheels, raise the purchase order, and the e-mail to the wheel vendor is generated
           automatically.
         </p>
@@ -53,10 +53,10 @@ export default function WheelModal({
             {(Object.keys(WHEEL_PRICES) as WheelType[]).map((t) => (
               <tr key={t}>
                 <td
-                  className={`cursor-pointer font-semibold ${type === t ? "bg-blue-100" : ""}`}
+                  className={`cursor-pointer font-semibold ${type === t ? "!bg-cyan-400/15" : ""}`}
                   onClick={() => setType(t)}
                 >
-                  <label className="flex cursor-pointer items-center gap-2">
+                  <label className="flex cursor-pointer items-center gap-2 accent-cyan-400">
                     <input type="radio" checked={type === t} onChange={() => setType(t)} />
                     {t}
                   </label>
@@ -65,7 +65,9 @@ export default function WheelModal({
                   <td
                     key={i}
                     className={
-                      type === t && count === i + 1 ? "bg-amber-200 font-bold" : "text-slate-600"
+                      type === t && count === i + 1
+                        ? "!bg-amber-300/20 font-bold !text-amber-200"
+                        : "!text-slate-400"
                     }
                   >
                     {fmtMoney(p)}
@@ -82,7 +84,11 @@ export default function WheelModal({
             {POSITIONS.map((p) => (
               <button
                 key={p}
-                className={`btn ${positions.includes(p) ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`btn ${
+                  positions.includes(p)
+                    ? "bg-gradient-to-br from-cyan-300 to-sky-400 text-slate-950 shadow-lg shadow-cyan-500/25"
+                    : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                }`}
                 onClick={() => toggle(p)}
               >
                 {p}
@@ -105,9 +111,9 @@ export default function WheelModal({
             />
           </div>
           <div className="flex items-end justify-end">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-400">
               Total:{" "}
-              <span className="text-xl font-bold text-slate-900">{fmtMoney(price)}</span>
+              <span className="text-xl font-bold text-white">{fmtMoney(price)}</span>
             </p>
           </div>
         </div>

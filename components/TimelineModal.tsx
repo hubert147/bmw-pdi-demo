@@ -9,7 +9,9 @@ export default function TimelineModal({ v, onClose }: { v: Vehicle; onClose: () 
   return (
     <Modal onClose={onClose}>
       <div className="p-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-800">Vehicle history</h2>
+        <h2 className="mb-4 text-lg font-bold text-slate-100">
+          Vehicle history — <span className="text-cyan-300">{v.reg}</span>
+        </h2>
         <table className="kv-table">
           <thead>
             <tr>
@@ -21,9 +23,9 @@ export default function TimelineModal({ v, onClose }: { v: Vehicle; onClose: () 
             <tr><td>Title</td><td>{v.chassis}</td></tr>
             <tr><td>Registration</td><td>{v.reg}</td></tr>
             <tr><td>Model</td><td>{v.model}</td></tr>
-            <tr className="bg-yellow-100">
-              <td className="font-semibold">Current Stage</td>
-              <td className="font-semibold">{STAGES[v.stage].label}</td>
+            <tr>
+              <td className="!bg-amber-300/15 font-semibold !text-amber-200">Current Stage</td>
+              <td className="!bg-amber-300/15 font-semibold !text-amber-200">{STAGES[v.stage].label}</td>
             </tr>
             {v.timeline.map((t, i) => (
               <tr key={i}>
