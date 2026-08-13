@@ -1,0 +1,38 @@
+{
+  "source": "Pinewood DMS (mock feed)",
+  "generated": "2026-08-14T06:00:00Z",
+  "vehicles": [
+    {
+      "stock": "STOCK",
+      "make": "Mercedes-Benz",
+      "model": "GLE 350 de",
+      "reg": "KT74 XWP",
+      "chassis": "7C91243",
+      "bodywork": "OK"
+    },
+    {
+      "stock": "STOCK",
+      "make": "Mercedes-Benz",
+      "model": "A 250 e",
+      "reg": "LM74 JCV",
+      "chassis": "5V22871",
+      "bodywork": "Scuff OSR bumper"
+    },
+    {
+      "stock": "SOLD",
+      "make": "Mercedes-Benz",
+      "model": "Vito 119",
+      "reg": "KY74 EHB",
+      "chassis": "3F55810",
+      "bodywork": "OK"
+    },
+    {
+      "stock": "STOCK",
+      "make": "Mercedes-Benz",
+      "model": "GLC 220 d",
+      "reg": "MA74 PZT",
+      "chassis": "8D10394",
+      "bodywork": "Stone chips on bonnet"
+    }
+  ]
+}

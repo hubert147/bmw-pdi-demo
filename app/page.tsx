@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { TabKey, WheelPos, WheelType } from "@/lib/types";
+import type { TabKey, Vehicle, WheelPos, WheelType } from "@/lib/types";
 import { STAGES, TABS, daysInStage } from "@/lib/stages";
 import { useVehicles } from "@/lib/store";
 import InsightsView from "@/components/InsightsView";
@@ -185,6 +185,44 @@ export default function Home() {
           )}
           <button className="btn-ghost" onClick={() => showToast("Movement requests are not part of this demo")}>
             Movement request
+          </button>
+          <button
+            className="btn-ghost"
+            title="Pull newly arrived cars from the DMS feed (simulated Pinewood export)"
+            onClick={async () => {
+              try {
+                const feed = (await fetch("/dms-feed.json").then((r) => r.json())) as {
+                  vehicles: { stock: string; make: string; model: string; reg: string; chassis: string; bodywork: string }[];
+                };
+                const existing = new Set(vehicles.map((v) => v.reg));
+                const fresh = feed.vehicles.filter((f) => !existing.has(f.reg));
+                for (const f of fresh) {
+                  store.addVehicle({
+                    stock: (f.stock === "SOLD" ? "SOLD" : "STOCK") as Vehicle["stock"],
+                    make: f.make,
+                    model: f.model,
+                    reg: f.reg,
+                    chassis: f.chassis,
+                    bodyworkNotes: f.bodywork,
+                    valetingNotes: "",
+                    photos: [],
+                    wheelPositions: [],
+                    aucLine: true,
+                    mot: false,
+                  });
+                }
+                setTab("PDI");
+                showToast(
+                  fresh.length
+                    ? `Imported ${fresh.length} vehicle${fresh.length === 1 ? "" : "s"} from DMS (${feed.vehicles.length - fresh.length} already in system)`
+                    : "DMS feed checked — no new vehicles",
+                );
+              } catch {
+                showToast("Could not reach the DMS feed");
+              }
+            }}
+          >
+            ⇄ DMS import
           </button>
           <button className="btn-primary" onClick={() => setModal({ kind: "add" })}>
             + Add Vehicle

@@ -3,6 +3,7 @@
 import type { Vehicle } from "@/lib/types";
 import { STAGES } from "@/lib/stages";
 import { computeInsights } from "@/lib/insights";
+import { downloadControlSheet } from "@/lib/csv";
 
 function Tile({
   label,
@@ -32,6 +33,19 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-500">
+          Live metrics from the current fleet — updated with every click.
+        </p>
+        <button
+          className="btn-primary"
+          title="Download the full control sheet as CSV (opens in Excel)"
+          onClick={() => downloadControlSheet(vehicles)}
+        >
+          ⬇ Export control sheet (CSV)
+        </button>
+      </div>
+
       {/* KPI tiles */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile label="Cars in prep" value={String(ins.inPrep)} sub={`${ins.ready} ready for sale`} />
