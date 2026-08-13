@@ -90,7 +90,8 @@ export function computeInsights(vehicles: Vehicle[], now = Date.now()): Insights
       avgDays,
       samples: n,
       sla: STAGES[k].sla,
-      overTarget: avgDays > STAGES[k].sla,
+      // small tolerance so float noise (e.g. 1.04 vs target 1) doesn't flag a stage
+      overTarget: avgDays > STAGES[k].sla + 0.1,
     };
   });
 

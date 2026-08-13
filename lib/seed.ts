@@ -55,10 +55,14 @@ function build(spec: SeedSpec, idx: number, now: number): Vehicle {
   const durations = doneSteps.map(
     (s, i) => ((STEP_DAYS[s] ?? 0.5) + ((idx * 7 + i * 3) % 5) * 0.12) * DAY,
   );
-  // walk backwards from the moment the current stage was entered:
-  // entry(i-1) = entry(i) - time spent in step i-1
+  // READY cars have post-workshop history (valet -> photos), so their PDI part
+  // must end before it; everything else enters its current stage straight after
+  // the last PDI step
+  const pdiAnchor = stage === "READY" ? enteredAt - 1.4 * DAY : enteredAt;
+
+  // walk backwards from the anchor: entry(i-1) = entry(i) - time spent in step i-1
   const timeline: Vehicle["timeline"] = [];
-  let cursor = enteredAt;
+  let cursor = pdiAnchor;
   for (let i = doneSteps.length - 1; i >= 0; i--) {
     timeline.unshift({ label: STAGES[doneSteps[i]].timelineLabel, at: cursor });
     if (i > 0) cursor -= durations[i - 1];
