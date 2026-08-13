@@ -86,6 +86,56 @@ export default function InsightsView({ vehicles }: { vehicles: Vehicle[] }) {
         </div>
       </div>
 
+      {/* vendor scorecard */}
+      <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+        <h3 className="text-sm font-bold text-slate-800">Vendor scorecard</h3>
+        <p className="mb-3 text-xs text-slate-500">
+          Who actually delivers on time — hard numbers for the next price negotiation.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="kv-table">
+            <thead>
+              <tr>
+                <th>Vendor</th>
+                <th>Jobs done</th>
+                <th>Avg turnaround</th>
+                <th>Target</th>
+                <th>On time</th>
+                <th>In progress now</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ins.vendorStats.map((s) => (
+                <tr key={s.name}>
+                  <td className="font-semibold">{s.name}</td>
+                  <td className="tabular-nums">{s.completed}</td>
+                  <td className="tabular-nums">{s.avgDays !== null ? `${s.avgDays.toFixed(1)} d` : "—"}</td>
+                  <td className="tabular-nums">{s.target} d</td>
+                  <td>
+                    {s.onTimePct === null ? (
+                      "—"
+                    ) : (
+                      <span
+                        className={`chip ${
+                          s.onTimePct >= 80
+                            ? "bg-emerald-600 text-white"
+                            : s.onTimePct >= 50
+                              ? "bg-amber-500 text-white"
+                              : "bg-red-600 text-white"
+                        }`}
+                      >
+                        {s.onTimePct >= 80 ? "✓" : "⚠"} {s.onTimePct}%
+                      </span>
+                    )}
+                  </td>
+                  <td className="tabular-nums">{s.inProgress}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* overdue list */}
       <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
         <h3 className="text-sm font-bold text-slate-800">

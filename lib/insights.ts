@@ -33,6 +33,16 @@ export interface OverdueRow {
   sla: number;
 }
 
+export interface VendorStat {
+  name: string;
+  completed: number;
+  avgDays: number | null;
+  target: number;
+  /** % of completed jobs finished within target; null when no completed jobs */
+  onTimePct: number | null;
+  inProgress: number;
+}
+
 export interface Insights {
   inPrep: number;
   ready: number;
@@ -41,7 +51,14 @@ export interface Insights {
   avgT2L: number | null;
   stageStats: StageStat[];
   bottleneck: StageStat | null;
+  vendorStats: VendorStat[];
 }
+
+const VENDORS: { name: string; sent: string; done: string; target: number; stage: StageKey }[] = [
+  { name: "TLC Car Care — wheels", sent: "Sent to TLC", done: "TLC completed", target: 3, stage: "AT_TLC" },
+  { name: "EWARC — bodyshop", sent: "Sent to EWARC", done: "EWARC completed", target: 5, stage: "AT_BODYSHOP" },
+  { name: "Valet team", sent: "Added to valet sheet", done: "Valeted", target: 1, stage: "ON_VALET_SHEET" },
+];
 
 /** timeline label -> stage whose entry it marks */
 const LABEL_TO_STAGE: Record<string, StageKey> = Object.fromEntries(
@@ -99,5 +116,24 @@ export function computeInsights(vehicles: Vehicle[], now = Date.now()): Insights
     ? stageStats.reduce((a, b) => (b.avgDays > a.avgDays ? b : a))
     : null;
 
-  return { inPrep: active.length, ready: readyCars.length, overdue, avgT2L, stageStats, bottleneck };
+  // vendor scorecard: pair each "sent" timeline entry with the next matching "done"
+  const vendorStats: VendorStat[] = VENDORS.map((cfg) => {
+    const turnarounds: number[] = [];
+    for (const v of vehicles) {
+      for (let i = 0; i < v.timeline.length; i++) {
+        if (v.timeline[i].label !== cfg.sent) continue;
+        const done = v.timeline.slice(i + 1).find((e) => e.label === cfg.done);
+        if (done) turnarounds.push((done.at - v.timeline[i].at) / DAY);
+      }
+    }
+    const completed = turnarounds.length;
+    const avgDays = completed ? turnarounds.reduce((a, b) => a + b, 0) / completed : null;
+    const onTimePct = completed
+      ? Math.round((turnarounds.filter((t) => t <= cfg.target).length / completed) * 100)
+      : null;
+    const inProgress = vehicles.filter((v) => v.stage === cfg.stage).length;
+    return { name: cfg.name, completed, avgDays, target: cfg.target, onTimePct, inProgress };
+  });
+
+  return { inPrep: active.length, ready: readyCars.length, overdue, avgT2L, stageStats, bottleneck, vendorStats };
 }

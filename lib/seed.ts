@@ -24,6 +24,8 @@ interface SeedSpec {
   bodywork?: string;
   valeting?: string;
   wheels?: { type: "Diamond Cut" | "Normal"; positions: Vehicle["wheelPositions"]; po?: string };
+  /** completed vendor visits, days before the current stage was entered */
+  vendorHistory?: { vendor: "TLC" | "EWARC"; sentDaysAgo: number; doneDaysAgo: number }[];
   tlcDone?: boolean;
   ewarcDone?: boolean;
   aucLine?: boolean;
@@ -55,10 +57,30 @@ function build(spec: SeedSpec, idx: number, now: number): Vehicle {
   const durations = doneSteps.map(
     (s, i) => ((STEP_DAYS[s] ?? 0.5) + ((idx * 7 + i * 3) % 5) * 0.12) * DAY,
   );
-  // READY cars have post-workshop history (valet -> photos), so their PDI part
-  // must end before it; everything else enters its current stage straight after
-  // the last PDI step
-  const pdiAnchor = stage === "READY" ? enteredAt - 1.4 * DAY : enteredAt;
+  // post-workshop events: completed vendor visits + the current stage's own chain
+  const post: Vehicle["timeline"] = [];
+  for (const h of spec.vendorHistory ?? []) {
+    post.push({ label: h.vendor === "TLC" ? "Sent to TLC" : "Sent to EWARC", at: enteredAt - h.sentDaysAgo * DAY });
+    post.push({ label: h.vendor === "TLC" ? "TLC completed" : "EWARC completed", at: enteredAt - h.doneDaysAgo * DAY });
+  }
+  if (pdiIdx < 0) {
+    if (stage === "AT_TLC") post.push({ label: "Sent to TLC", at: enteredAt });
+    if (stage === "AT_BODYSHOP") post.push({ label: "Sent to EWARC", at: enteredAt });
+    if (stage === "ON_VALET_SHEET") post.push({ label: "Added to valet sheet", at: enteredAt });
+    if (stage === "VALETED") {
+      post.push({ label: "Added to valet sheet", at: enteredAt - 0.6 * DAY });
+      post.push({ label: "Valeted", at: enteredAt });
+    }
+    if (stage === "READY") {
+      post.push({ label: "Added to valet sheet", at: enteredAt - 1.8 * DAY });
+      post.push({ label: "Valeted", at: enteredAt - DAY });
+      post.push({ label: "Photographed", at: enteredAt });
+    }
+  }
+
+  // the PDI part must end before the earliest post-workshop event
+  const earliestPost = post.length ? Math.min(...post.map((e) => e.at)) : enteredAt;
+  const pdiAnchor = pdiIdx >= 0 ? enteredAt : earliestPost - 0.3 * DAY;
 
   // walk backwards from the anchor: entry(i-1) = entry(i) - time spent in step i-1
   const timeline: Vehicle["timeline"] = [];
@@ -67,17 +89,7 @@ function build(spec: SeedSpec, idx: number, now: number): Vehicle {
     timeline.unshift({ label: STAGES[doneSteps[i]].timelineLabel, at: cursor });
     if (i > 0) cursor -= durations[i - 1];
   }
-  if (pdiIdx < 0) {
-    // car is past the PDI hub — add its post-workshop entries
-    if (stage === "AT_TLC") timeline.push({ label: "Sent to TLC", at: enteredAt });
-    if (stage === "AT_BODYSHOP") timeline.push({ label: "Sent to EWARC", at: enteredAt });
-    if (stage === "ON_VALET_SHEET") timeline.push({ label: "Added to valet sheet", at: enteredAt });
-    if (stage === "VALETED") timeline.push({ label: "Valeted", at: enteredAt });
-    if (stage === "READY") {
-      timeline.push({ label: "Valeted", at: enteredAt - DAY });
-      timeline.push({ label: "Photographed", at: enteredAt });
-    }
-  }
+  timeline.push(...post.sort((a, b) => a.at - b.at));
 
   return {
     id: `seed-${idx}`,
@@ -116,9 +128,9 @@ export function seedVehicles(now = Date.now()): Vehicle[] {
     { model: "AMG A 35", reg: "RA68 TVJ", chassis: "7K41140", stage: "WORKSHOP_COMPLETE", bodywork: "Smart front bumper NS" },
     { model: "EQB 300", reg: "EV26 DJX", chassis: "CX65453", stage: "AT_TLC", daysInStage: 1, bodywork: "OK", wheels: { type: "Diamond Cut", positions: ["NSF", "OSF"], po: "12345" } },
     { model: "AMG C 63", reg: "MC73 WMX", chassis: "FR86510", stage: "AT_BODYSHOP", daysInStage: 6, bodywork: "Dent driver's door and OSR 1/4" },
-    { model: "E 300", reg: "YE25 DMZ", chassis: "N338479", stage: "ON_VALET_SHEET", daysInStage: 2, valeting: "Full valet and polish", tlcDone: true },
-    { model: "B 180", reg: "YE20 DND", chassis: "2N25003", stage: "VALETED", daysInStage: 1 },
-    { model: "CLA 250", reg: "SR19 SYW", chassis: "2L09256", stage: "READY", daysInStage: 3, ewarcDone: true },
+    { model: "E 300", reg: "YE25 DMZ", chassis: "N338479", stage: "ON_VALET_SHEET", daysInStage: 2, valeting: "Full valet and polish", tlcDone: true, vendorHistory: [{ vendor: "TLC", sentDaysAgo: 3.2, doneDaysAgo: 2.0 }] },
+    { model: "B 180", reg: "YE20 DND", chassis: "2N25003", stage: "VALETED", daysInStage: 1, tlcDone: true, vendorHistory: [{ vendor: "TLC", sentDaysAgo: 4.2, doneDaysAgo: 3.0 }] },
+    { model: "CLA 250", reg: "SR19 SYW", chassis: "2L09256", stage: "READY", daysInStage: 3, ewarcDone: true, vendorHistory: [{ vendor: "EWARC", sentDaysAgo: 10.3, doneDaysAgo: 4.7 }] },
   ];
   return specs.map((s, i) => build(s, i, now));
 }
