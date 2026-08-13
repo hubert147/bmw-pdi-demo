@@ -6,7 +6,7 @@ import { STAGES } from "./stages";
 import { seedVehicles } from "./seed";
 import { bodyshopEmail, tlcEmail } from "./email";
 
-const KEY = "prepflow-demo-v1";
+const KEY = "prepflow-demo-v2";
 
 function load(): Vehicle[] {
   try {

@@ -23,6 +23,7 @@ export default function VehicleRow({
 }) {
   const meta = STAGES[v.stage];
   const days = daysInStage(v.stageEnteredAt);
+  const overdue = days > meta.sla;
   const showDays = v.stage !== "TO_GO_TO_PDI" && v.stage !== "READY";
 
   let action: React.ReactNode = null;
@@ -63,7 +64,14 @@ export default function VehicleRow({
       </span>
 
       <span className="ml-auto flex items-center gap-2">
-        {showDays && <span className={`chip ${dayBadgeClass(days)}`}>{days} day</span>}
+        {showDays && (
+          <span
+            className={`chip ${dayBadgeClass(days, meta.sla)}`}
+            title={overdue ? `Over stage target of ${meta.sla} day(s)` : `Target: ${meta.sla} day(s)`}
+          >
+            {days} day{overdue ? " ⚠" : ""}
+          </span>
+        )}
         <span className={`chip ${meta.chip}`}>{meta.label}</span>
         {action && (
           <>

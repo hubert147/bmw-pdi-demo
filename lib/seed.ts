@@ -29,17 +29,40 @@ interface SeedSpec {
   aucLine?: boolean;
 }
 
+/**
+ * typical days spent in each PDI step — authority wait is the classic bottleneck,
+ * so the Insights chart has a real story to tell out of the box
+ */
+const STEP_DAYS: Partial<Record<StageKey, number>> = {
+  TO_GO_TO_PDI: 0.8,
+  ARRIVED_AT_PDI: 0.3,
+  JOB_CARD_RAISED: 0.4,
+  WORKSHOP_STARTED: 1.1,
+  AUTHORITY_REQUESTED: 1.9,
+  AUTHORITY_RECEIVED: 0.6,
+  WORKSHOP_COMPLETE: 0.5,
+};
+
 function build(spec: SeedSpec, idx: number, now: number): Vehicle {
   const stage = spec.stage;
   const enteredAt = now - (spec.daysInStage ?? 0) * DAY - 2 * HOUR;
 
-  // synthesise timeline: every PDI step before the current stage, one per ~half day
+  // synthesise timeline: every PDI step before the current stage, with per-step
+  // durations + deterministic jitter so averages differ per stage
   const pdiIdx = PDI_PATH.indexOf(stage);
   const stepsDone = pdiIdx >= 0 ? pdiIdx + 1 : PDI_PATH.length;
-  const timeline = PDI_PATH.slice(0, stepsDone).map((s, i) => ({
-    label: STAGES[s].timelineLabel,
-    at: enteredAt - (stepsDone - 1 - i) * (DAY / 2),
-  }));
+  const doneSteps = PDI_PATH.slice(0, stepsDone);
+  const durations = doneSteps.map(
+    (s, i) => ((STEP_DAYS[s] ?? 0.5) + ((idx * 7 + i * 3) % 5) * 0.12) * DAY,
+  );
+  // walk backwards from the moment the current stage was entered:
+  // entry(i-1) = entry(i) - time spent in step i-1
+  const timeline: Vehicle["timeline"] = [];
+  let cursor = enteredAt;
+  for (let i = doneSteps.length - 1; i >= 0; i--) {
+    timeline.unshift({ label: STAGES[doneSteps[i]].timelineLabel, at: cursor });
+    if (i > 0) cursor -= durations[i - 1];
+  }
   if (pdiIdx < 0) {
     // car is past the PDI hub — add its post-workshop entries
     if (stage === "AT_TLC") timeline.push({ label: "Sent to TLC", at: enteredAt });
@@ -83,12 +106,12 @@ export function seedVehicles(now = Date.now()): Vehicle[] {
     { model: "GLA 220", reg: "LB24 TRE", chassis: "2X10285", stage: "ARRIVED_AT_PDI", bodywork: "Stone chips on bonnet" },
     { model: "GLB 200", reg: "WF73 CHP", chassis: "3R95666", stage: "JOB_CARD_RAISED", bodywork: "2 front tyres and service" },
     { model: "C 220 d", reg: "AB51 ABC", chassis: "AB12345", stage: "WORKSHOP_STARTED", bodywork: "NSF bumper scuffed", wheels: { type: "Diamond Cut", positions: ["NSF", "OSF"] } },
-    { model: "A 180", reg: "EK73 HNA", chassis: "5X78332", stage: "AUTHORITY_REQUESTED", bodywork: "Front bumper needs painted" },
+    { model: "A 180", reg: "EK73 HNA", chassis: "5X78332", stage: "AUTHORITY_REQUESTED", daysInStage: 2, bodywork: "Front bumper needs painted" },
     { model: "GLC 300", reg: "OV21 ZSU", chassis: "5T59678", stage: "AUTHORITY_RECEIVED", daysInStage: 1, bodywork: "Rear bumper smart repair, polish bonnet" },
     { model: "AMG A 35", reg: "RA68 TVJ", chassis: "7K41140", stage: "WORKSHOP_COMPLETE", bodywork: "Smart front bumper NS" },
     { model: "EQB 300", reg: "EV26 DJX", chassis: "CX65453", stage: "AT_TLC", daysInStage: 1, bodywork: "OK", wheels: { type: "Diamond Cut", positions: ["NSF", "OSF"], po: "12345" } },
-    { model: "AMG C 63", reg: "MC73 WMX", chassis: "FR86510", stage: "AT_BODYSHOP", daysInStage: 2, bodywork: "Dent driver's door and OSR 1/4" },
-    { model: "E 300", reg: "YE25 DMZ", chassis: "N338479", stage: "ON_VALET_SHEET", valeting: "Full valet and polish", tlcDone: true },
+    { model: "AMG C 63", reg: "MC73 WMX", chassis: "FR86510", stage: "AT_BODYSHOP", daysInStage: 6, bodywork: "Dent driver's door and OSR 1/4" },
+    { model: "E 300", reg: "YE25 DMZ", chassis: "N338479", stage: "ON_VALET_SHEET", daysInStage: 2, valeting: "Full valet and polish", tlcDone: true },
     { model: "B 180", reg: "YE20 DND", chassis: "2N25003", stage: "VALETED", daysInStage: 1 },
     { model: "CLA 250", reg: "SR19 SYW", chassis: "2L09256", stage: "READY", daysInStage: 3, ewarcDone: true },
   ];

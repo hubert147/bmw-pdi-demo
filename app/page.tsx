@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import type { TabKey, WheelPos, WheelType } from "@/lib/types";
-import { STAGES, TABS } from "@/lib/stages";
+import { STAGES, TABS, daysInStage } from "@/lib/stages";
 import { useVehicles } from "@/lib/store";
+import InsightsView from "@/components/InsightsView";
 import VehicleRow from "@/components/VehicleRow";
 import ActionCard from "@/components/ActionCard";
 import WheelModal from "@/components/WheelModal";
@@ -20,7 +21,7 @@ type ModalState =
 
 export default function Home() {
   const store = useVehicles();
-  const [tab, setTab] = useState<TabKey>("PDI");
+  const [tab, setTab] = useState<TabKey | "INSIGHTS">("PDI");
   const [query, setQuery] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export default function Home() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return vehicles.filter((v) => {
-      if (STAGES[v.stage].tab !== tab) return false;
+      if (tab === "INSIGHTS" || STAGES[v.stage].tab !== tab) return false;
       if (!q) return true;
       return [v.model, v.reg, v.chassis, v.bodyworkNotes, v.make]
         .join(" ")
@@ -49,6 +50,14 @@ export default function Home() {
         .includes(q);
     });
   }, [vehicles, tab, query]);
+
+  const overdueCount = useMemo(
+    () =>
+      vehicles.filter(
+        (v) => v.stage !== "READY" && daysInStage(v.stageEnteredAt) > STAGES[v.stage].sla,
+      ).length,
+    [vehicles],
+  );
 
   const current = modal && "id" in modal ? vehicles.find((v) => v.id === modal.id) : undefined;
 
@@ -136,11 +145,26 @@ export default function Home() {
             </span>
           </button>
         ))}
+        <button
+          onClick={() => setTab("INSIGHTS")}
+          className={`relative ml-auto flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
+            tab === "INSIGHTS" ? "bg-slate-800 text-white shadow" : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          📊 Insights
+          {overdueCount > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white">
+              {overdueCount}
+            </span>
+          )}
+        </button>
       </nav>
 
       {/* list */}
       {store.vehicles === null ? (
         <p className="py-20 text-center text-sm text-slate-500">Loading…</p>
+      ) : tab === "INSIGHTS" ? (
+        <InsightsView vehicles={vehicles} />
       ) : filtered.length === 0 ? (
         <p className="rounded-xl border border-dashed border-slate-300 bg-white/60 py-16 text-center text-sm text-slate-500">
           No vehicles in this tab{query ? " matching your search" : ""}.

@@ -10,6 +10,8 @@ interface StageMeta {
   nextStage?: StageKey;
   /** timeline entry written when the stage is entered */
   timelineLabel: string;
+  /** SLA target: max days a car should sit in this stage before it counts as overdue */
+  sla: number;
 }
 
 export const STAGES: Record<StageKey, StageMeta> = {
@@ -20,6 +22,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Arrived at PDI",
     nextStage: "ARRIVED_AT_PDI",
     timelineLabel: "Added to system",
+    sla: 2,
   },
   ARRIVED_AT_PDI: {
     label: "Arrived at PDI",
@@ -28,6 +31,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Job Card Raised",
     nextStage: "JOB_CARD_RAISED",
     timelineLabel: "Arrived at PDI",
+    sla: 1,
   },
   JOB_CARD_RAISED: {
     label: "Job Card Raised",
@@ -36,6 +40,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Started",
     nextStage: "WORKSHOP_STARTED",
     timelineLabel: "Job Card Raised",
+    sla: 1,
   },
   WORKSHOP_STARTED: {
     label: "Started",
@@ -44,6 +49,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Authority requested",
     nextStage: "AUTHORITY_REQUESTED",
     timelineLabel: "Workshop started",
+    sla: 2,
   },
   AUTHORITY_REQUESTED: {
     label: "Authority requested",
@@ -52,6 +58,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Authority received",
     nextStage: "AUTHORITY_RECEIVED",
     timelineLabel: "Authority requested",
+    sla: 1,
   },
   AUTHORITY_RECEIVED: {
     label: "Authority received",
@@ -60,6 +67,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Workshop Complete",
     nextStage: "WORKSHOP_COMPLETE",
     timelineLabel: "Authority received",
+    sla: 1,
   },
   WORKSHOP_COMPLETE: {
     label: "Workshop Complete",
@@ -67,6 +75,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     tab: "PDI",
     // opens the action card instead of a linear advance
     timelineLabel: "Workshop completed",
+    sla: 1,
   },
   AT_TLC: {
     label: "At TLC (wheels)",
@@ -74,6 +83,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     tab: "TLC",
     nextLabel: "TLC Completed",
     timelineLabel: "Sent to TLC",
+    sla: 3,
   },
   AT_BODYSHOP: {
     label: "At Bodyshop (EWARC)",
@@ -81,6 +91,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     tab: "BODYSHOP",
     nextLabel: "EWARC Completed",
     timelineLabel: "Sent to EWARC",
+    sla: 5,
   },
   ON_VALET_SHEET: {
     label: "On valet sheet",
@@ -89,6 +100,7 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Valeted",
     nextStage: "VALETED",
     timelineLabel: "Added to valet sheet",
+    sla: 1,
   },
   VALETED: {
     label: "Valeted",
@@ -97,12 +109,14 @@ export const STAGES: Record<StageKey, StageMeta> = {
     nextLabel: "Photos done",
     nextStage: "READY",
     timelineLabel: "Valeted",
+    sla: 1,
   },
   READY: {
     label: "Ready for sale",
     chip: "bg-green-600 text-white",
     tab: "VALET",
     timelineLabel: "Photographed",
+    sla: Number.POSITIVE_INFINITY,
   },
 };
 
@@ -122,8 +136,13 @@ export function daysInStage(stageEnteredAt: number, now = Date.now()): number {
   return Math.max(0, Math.floor((now - stageEnteredAt) / 86_400_000));
 }
 
-export function dayBadgeClass(days: number): string {
-  if (days <= 1) return "bg-green-700 text-white";
-  if (days <= 3) return "bg-amber-500 text-white";
-  return "bg-red-600 text-white";
+/** SLA-aware badge colour: green under target, amber at target, pulsing red over target */
+export function dayBadgeClass(days: number, sla: number): string {
+  if (days > sla) return "bg-red-600 text-white animate-pulse";
+  if (days === sla) return "bg-amber-500 text-white";
+  return "bg-green-700 text-white";
+}
+
+export function isOverdue(days: number, sla: number): boolean {
+  return days > sla;
 }
