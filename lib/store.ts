@@ -1,17 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { EmailRecord, StageKey, Vehicle, WheelPos, WheelType } from "./types";
+import type { EmailRecord, StageKey, Vehicle, VehiclePhoto, WheelPos, WheelType } from "./types";
 import { STAGES } from "./stages";
 import { seedVehicles } from "./seed";
 import { bodyshopEmail, tlcEmail } from "./email";
 
-const KEY = "prepflow-demo-v2";
+const KEY = "prepflow-demo-v3";
 
 function load(): Vehicle[] {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as Vehicle[];
+    if (raw) {
+      const parsed = JSON.parse(raw) as Vehicle[];
+      // normalise fields added after the data was first stored
+      return parsed.map((v) => ({ ...v, photos: v.photos ?? [] }));
+    }
   } catch {
     /* corrupted storage — fall through to seed */
   }
@@ -215,6 +219,20 @@ export function useVehicles() {
     [patch],
   );
 
+  const addPhotos = useCallback(
+    (id: string, photos: VehiclePhoto[]) => {
+      patch(id, (v) => ({ ...v, photos: [...v.photos, ...photos] }));
+    },
+    [patch],
+  );
+
+  const removePhoto = useCallback(
+    (id: string, index: number) => {
+      patch(id, (v) => ({ ...v, photos: v.photos.filter((_, i) => i !== index) }));
+    },
+    [patch],
+  );
+
   const resetDemo = useCallback(() => {
     const fresh = seedVehicles();
     persist(fresh);
@@ -231,6 +249,8 @@ export function useVehicles() {
     updateVehicle,
     deleteVehicle,
     addComment,
+    addPhotos,
+    removePhoto,
     resetDemo,
   };
 }

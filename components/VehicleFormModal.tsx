@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import type { StockStatus, Vehicle, WheelType } from "@/lib/types";
+import { useRef, useState } from "react";
+import type { StockStatus, Vehicle, VehiclePhoto, WheelType } from "@/lib/types";
+import { MAX_PHOTOS, fileToThumb } from "@/lib/photos";
 import Modal from "./Modal";
+import VinScanModal from "./VinScanModal";
 
 function Toggle({
   checked,
@@ -40,6 +42,7 @@ export interface VehicleFormValues {
   chassis: string;
   bodyworkNotes: string;
   valetingNotes: string;
+  photos: VehiclePhoto[];
   wheelType?: WheelType;
   aucLine: boolean;
   mot: boolean;
@@ -71,8 +74,26 @@ export default function VehicleFormModal({
   const [aucLine, setAucLine] = useState(vehicle?.aucLine ?? true);
   const [mot, setMot] = useState(vehicle?.mot ?? false);
   const [emailDrivers, setEmailDrivers] = useState(false);
+  const [photos, setPhotos] = useState<VehiclePhoto[]>(vehicle?.photos ?? []);
+  const [scanOpen, setScanOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const valid = model.trim() && reg.trim() && chassis.trim();
+
+  const addFiles = async (files: FileList | null) => {
+    if (!files) return;
+    const room = MAX_PHOTOS - photos.length;
+    const picked = [...files].slice(0, Math.max(0, room));
+    const thumbs: VehiclePhoto[] = [];
+    for (const f of picked) {
+      try {
+        thumbs.push({ dataUrl: await fileToThumb(f), at: Date.now() });
+      } catch {
+        /* unreadable file — skip */
+      }
+    }
+    if (thumbs.length) setPhotos((prev) => [...prev, ...thumbs]);
+  };
 
   const save = () =>
     onSave({
@@ -83,6 +104,7 @@ export default function VehicleFormModal({
       chassis: chassis.trim().toUpperCase().slice(-7),
       bodyworkNotes: bodywork.trim(),
       valetingNotes: valeting.trim(),
+      photos,
       wheelType: wheelType || undefined,
       aucLine,
       mot,
@@ -126,7 +148,17 @@ export default function VehicleFormModal({
           </div>
           <div>
             <label className="field-label" htmlFor="f-chassis">Chassis — last 7 only *</label>
-            <input id="f-chassis" className="field-input font-mono" value={chassis} onChange={(e) => setChassis(e.target.value)} maxLength={7} placeholder="AB12345" />
+            <div className="flex gap-2">
+              <input id="f-chassis" className="field-input font-mono" value={chassis} onChange={(e) => setChassis(e.target.value)} maxLength={7} placeholder="AB12345" />
+              <button
+                type="button"
+                className="btn-primary shrink-0 px-3"
+                title="Scan the VIN barcode with your camera"
+                onClick={() => setScanOpen(true)}
+              >
+                📷 Scan
+              </button>
+            </div>
           </div>
           <div>
             <label className="field-label" htmlFor="f-wheels">Wheels</label>
@@ -151,6 +183,52 @@ export default function VehicleFormModal({
           <div>
             <label className="field-label" htmlFor="f-valet">Valeting notes</label>
             <textarea id="f-valet" className="field-input min-h-16" value={valeting} onChange={(e) => setValeting(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <span className="field-label">Photos of damaged bodywork (except alloys)</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {photos.map((p, i) => (
+              <span key={i} className="group relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.dataUrl}
+                  alt={`Damage photo ${i + 1}`}
+                  className="h-16 w-20 rounded-lg border border-slate-300 object-cover shadow-sm"
+                />
+                <button
+                  type="button"
+                  aria-label="Remove photo"
+                  className="absolute -right-1.5 -top-1.5 hidden h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow group-hover:flex"
+                  onClick={() => setPhotos((prev) => prev.filter((_, j) => j !== i))}
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+            {photos.length < MAX_PHOTOS && (
+              <button
+                type="button"
+                className="flex h-16 w-20 flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-400 text-slate-500 hover:border-blue-500 hover:text-blue-600"
+                onClick={() => fileRef.current?.click()}
+              >
+                <span className="text-lg leading-none">📷</span>
+                <span className="text-[10px] font-semibold">Add photo</span>
+              </button>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                void addFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
           </div>
         </div>
 
@@ -182,6 +260,15 @@ export default function VehicleFormModal({
           </div>
         </div>
       </div>
+      {scanOpen && (
+        <VinScanModal
+          onClose={() => setScanOpen(false)}
+          onDetected={(vin) => {
+            setChassis(vin.slice(-7));
+            setScanOpen(false);
+          }}
+        />
+      )}
     </Modal>
   );
 }

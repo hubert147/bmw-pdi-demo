@@ -88,6 +88,7 @@ function build(spec: SeedSpec, idx: number, now: number): Vehicle {
     chassis: spec.chassis,
     bodyworkNotes: spec.bodywork ?? "OK",
     valetingNotes: spec.valeting ?? "",
+    photos: [],
     wheelType: spec.wheels?.type,
     wheelPositions: spec.wheels?.positions ?? [],
     purchaseOrder: spec.wheels?.po,

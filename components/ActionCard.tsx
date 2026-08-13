@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Vehicle } from "@/lib/types";
 import Modal from "./Modal";
 
@@ -18,6 +19,7 @@ export default function ActionCard({
   onAddToValet: () => void;
   onAucCompleted: () => void;
 }) {
+  const [lightbox, setLightbox] = useState<string | null>(null);
   return (
     <Modal onClose={onClose} wide>
       <div className="rounded-2xl bg-gradient-to-br from-amber-200 via-emerald-100 to-teal-300 p-6">
@@ -46,7 +48,22 @@ export default function ActionCard({
           </table>
           <div className="rounded-lg border border-slate-300 bg-white/70 p-3">
             <p className="text-sm font-semibold">Attachments</p>
-            <p className="mt-4 text-center text-sm text-slate-500">No attachments</p>
+            {v.photos.length === 0 ? (
+              <p className="mt-4 text-center text-sm text-slate-500">No attachments</p>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {v.photos.map((p, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={p.dataUrl}
+                    alt={`Damage photo ${i + 1}`}
+                    className="h-16 w-full cursor-zoom-in rounded-md border border-slate-300 object-cover shadow-sm hover:brightness-105"
+                    onClick={() => setLightbox(p.dataUrl)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -69,6 +86,15 @@ export default function ActionCard({
           this screen when the vendor finishes, then goes on the valet sheet.
         </p>
       </div>
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[70] flex cursor-zoom-out items-center justify-center bg-slate-900/80 p-6"
+          onClick={() => setLightbox(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="Damage photo" className="max-h-full max-w-full rounded-xl shadow-2xl" />
+        </div>
+      )}
     </Modal>
   );
 }

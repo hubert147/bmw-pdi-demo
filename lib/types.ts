@@ -37,6 +37,12 @@ export interface CommentRecord {
   at: number;
 }
 
+export interface VehiclePhoto {
+  /** downscaled JPEG data URL — small enough to live in localStorage */
+  dataUrl: string;
+  at: number;
+}
+
 export interface Vehicle {
   id: string;
   stock: StockStatus;
@@ -46,6 +52,7 @@ export interface Vehicle {
   chassis: string;
   bodyworkNotes: string;
   valetingNotes: string;
+  photos: VehiclePhoto[];
   wheelType?: WheelType;
   wheelPositions: WheelPos[];
   purchaseOrder?: string;
